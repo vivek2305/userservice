@@ -7,12 +7,10 @@ import com.harikart.userservice.dtos.UserDto;
 import com.harikart.userservice.model.Token;
 import com.harikart.userservice.model.User;
 import com.harikart.userservice.service.UserService;
+import lombok.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/users")
@@ -45,5 +43,10 @@ public class UserController {
     public ResponseEntity<Void> logout(@RequestBody LogoutRequestDto request){
         userService.logout(request.getToken());
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PostMapping("/validateToken/{token}")
+    public UserDto validateToke(@PathVariable("token") @NonNull String token){
+        return UserDto.from(userService.validateToken(token));
     }
 }

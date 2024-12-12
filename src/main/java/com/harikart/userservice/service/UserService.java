@@ -1,13 +1,12 @@
 package com.harikart.userservice.service;
 
-import com.harikart.userservice.model.User;
 import com.harikart.userservice.model.Token;
+import com.harikart.userservice.model.User;
 import com.harikart.userservice.repositiry.TokenRepository;
 import com.harikart.userservice.repositiry.UserRepository;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PostMapping;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -35,7 +34,9 @@ public class UserService {
         User u = new User();
         u.setEmail(email);
         u.setName(fullName);
-        u.setHashedPassword(bCryptPasswordEncoder.encode(password));
+        String encodedPassword = bCryptPasswordEncoder.encode(password);
+        System.out.println("HashedPassword= "+encodedPassword);
+        u.setHashedPassword(encodedPassword);
 
         User user = userRepository.save(u);
 
@@ -51,13 +52,15 @@ public class UserService {
         LocalDate currentDate = LocalDate.now();
         LocalDate futureLocalDate = currentDate.plusDays(30);
         User user = userOptional.get();
+        System.out.println("HashedPassword= "+user.getHashedPassword());
         if(!bCryptPasswordEncoder.matches(password, user.getHashedPassword())){
             return null;
         }
         Token token= new Token();
         token.setUser(user);
         token.setExpiryAt(Date.from(futureLocalDate.atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        token.setValue(RandomStringUtils.random(128));
+        token.setValue(RandomStringUtils.randomAlphanumeric(128));
+        System.out.println("Token= "+token.getValue());
 
         Token savedToken = tokenRepository.save(token);
 
@@ -75,5 +78,15 @@ public class UserService {
         tkn.setDeleted(true);
         tokenRepository.save(tkn);
         return;
+    }
+
+    public User validateToken(String token){
+        Optional<Token> tokenOptional = tokenRepository.findByValueAndIsDeletedAndExpiryAtGreaterThan(token,false, new Date());
+        if(tokenOptional.isEmpty()){
+            //throw token not exist or already expired.
+            return null;
+        }
+        Token tkn= tokenOptional.get();
+        return tkn.getUser();
     }
 }
