@@ -1,6 +1,7 @@
 package com.harikart.userservice.model;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.ManyToMany;
 
 import java.util.List;
@@ -16,7 +17,7 @@ public class User extends BaseModel{
 
     private String hashedPassword;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER ) //by default it does lazyloading.
     private List<Role> roles;
     private boolean isEmailVerified;
 
